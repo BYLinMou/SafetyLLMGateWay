@@ -1,0 +1,64 @@
+name: Feature request
+description: Propose a gateway feature or capability for agile planning.
+title: "[Feature]: "
+labels: ["enhancement", "planning"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form for proposed product, CLI, API, configuration, or workflow changes.
+  - type: textarea
+    id: problem_motivation
+    attributes:
+      label: Problem / motivation
+      description: What user need, risk, or project goal does this feature address?
+      placeholder: Describe the problem and why it matters.
+    validations:
+      required: true
+  - type: textarea
+    id: proposed_behavior
+    attributes:
+      label: Proposed behavior
+      description: What should the gateway do when this feature is implemented?
+      placeholder: Describe the intended behavior, outputs, and important edge cases.
+    validations:
+      required: true
+  - type: textarea
+    id: target_user_workflow
+    attributes:
+      label: Target user workflow
+      description: Who uses this and what steps should become easier or safer?
+      placeholder: Describe the user journey before, during, and after the feature.
+    validations:
+      required: true
+  - type: textarea
+    id: cli_api_config_impact
+    attributes:
+      label: Suggested CLI/API/config impact
+      description: Note any expected command-line flags, API changes, config keys, or defaults.
+      placeholder: List likely interface changes, or write "None" if this is internal only.
+    validations:
+      required: false
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Acceptance criteria
+      description: List observable outcomes that would make this feature complete.
+      placeholder: |
+        - [ ] The gateway ...
+        - [ ] Tests cover ...
+        - [ ] Documentation explains ...
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: Pick the planning priority for this request.
+      options:
+        - Must have
+        - Should have
+        - Could have
+        - Later / not yet planned
+    validations:
+      required: true

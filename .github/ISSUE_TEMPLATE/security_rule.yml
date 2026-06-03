@@ -1,0 +1,64 @@
+name: Security rule request
+description: Propose a detection, redaction, warning, or blocking rule for the gateway.
+title: "[Security rule]: "
+labels: ["security", "security-rule"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use synthetic or minimized examples. Do not include live secrets, credentials, or exploitable private details.
+  - type: dropdown
+    id: risk_type
+    attributes:
+      label: Risk type
+      description: What class of risk should this rule address?
+      options:
+        - Secret leakage
+        - Command injection
+        - File access
+        - Network exfiltration
+        - Dependency/install risk
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: example_input_output
+    attributes:
+      label: Example input/output
+      description: Show the smallest safe example of the input, output, or action this rule should catch.
+      placeholder: |
+        Input:
+
+        Current output/action:
+
+        Expected output/action:
+    validations:
+      required: true
+  - type: dropdown
+    id: desired_gateway_action
+    attributes:
+      label: Desired gateway action
+      description: What should the gateway do when the rule matches?
+      options:
+        - Allow
+        - Warn
+        - Redact
+        - Block
+    validations:
+      required: true
+  - type: textarea
+    id: false_positive_concern
+    attributes:
+      label: False-positive concern
+      description: Where might this rule match legitimate input, output, files, or commands?
+      placeholder: Describe examples that should remain allowed or only warn.
+    validations:
+      required: true
+  - type: textarea
+    id: references_rationale
+    attributes:
+      label: References or rationale
+      description: Link references or explain why this rule belongs in the gateway.
+      placeholder: Include standards, advisories, examples, or project-specific reasoning.
+    validations:
+      required: false
