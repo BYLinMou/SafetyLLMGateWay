@@ -56,6 +56,20 @@ Then edit `.dev/settings.json` and fill in the upstream values:
 
 `LSG_CONFIG_PATH` overrides the platform default path. The process loads and validates settings once when `lsg start` runs; it does not reread the settings file for every proxied request.
 
+## Runtime state
+
+`lsg start` writes runtime state for the currently managed gateway process. Runtime state is separate from `settings.json` and does not store API keys.
+
+Default runtime state paths:
+
+| Platform | Path |
+| --- | --- |
+| Linux | `${XDG_RUNTIME_DIR}/lsg/state.json` or `${XDG_CACHE_HOME:-~/.cache}/lsg/state.json` |
+| macOS | `~/Library/Caches/lsg/state.json` |
+| Windows | `%LOCALAPPDATA%\lsg\runtime\state.json` |
+
+`LSG_RUNTIME_STATE_PATH` overrides the platform default runtime state path.
+
 ## Run
 
 ```powershell
@@ -63,6 +77,14 @@ lsg start
 ```
 
 The gateway exposes `GET /health` locally. All other paths are forwarded to the configured default upstream with the original method, path, query string, and body. The gateway replaces incoming `Authorization` credentials with the configured upstream API key before forwarding.
+
+Check a running local gateway:
+
+```powershell
+lsg health
+```
+
+If runtime state is missing, `lsg health` falls back to the resolved settings file and checks the expected local URL from `server.host` and `server.port`.
 
 ## Test
 
