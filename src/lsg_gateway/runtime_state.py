@@ -50,7 +50,6 @@ def resolve_runtime_state_path(
     state_path: str | Path | None = None,
     *,
     env: Mapping[str, str] | None = None,
-    platform: str | None = None,
     home: Path | None = None,
 ) -> Path:
     if state_path is not None:
@@ -61,24 +60,8 @@ def resolve_runtime_state_path(
     if override:
         return Path(override).expanduser()
 
-    resolved_platform = sys.platform if platform is None else platform
     resolved_home = Path.home() if home is None else home
-
-    if resolved_platform == "darwin":
-        return resolved_home / "Library" / "Caches" / "lsg" / "state.json"
-
-    if resolved_platform.startswith("win"):
-        local_app_data = resolved_env.get("LOCALAPPDATA")
-        base = Path(local_app_data) if local_app_data else resolved_home / "AppData" / "Local"
-        return base / "lsg" / "runtime" / "state.json"
-
-    runtime_dir = resolved_env.get("XDG_RUNTIME_DIR")
-    if runtime_dir:
-        return Path(runtime_dir) / "lsg" / "state.json"
-
-    xdg_cache_home = resolved_env.get("XDG_CACHE_HOME")
-    base = Path(xdg_cache_home) if xdg_cache_home else resolved_home / ".cache"
-    return base / "lsg" / "state.json"
+    return resolved_home / ".lsg" / "state.json"
 
 
 def write_runtime_state(

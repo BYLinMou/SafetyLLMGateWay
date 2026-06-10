@@ -4,7 +4,6 @@ import hashlib
 import json
 import os
 import re
-import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping
@@ -91,7 +90,6 @@ def resolve_config_path(
     config_path: str | Path | None = None,
     *,
     env: Mapping[str, str] | None = None,
-    platform: str | None = None,
     home: Path | None = None,
 ) -> Path:
     if config_path is not None:
@@ -102,20 +100,8 @@ def resolve_config_path(
     if override:
         return Path(override).expanduser()
 
-    resolved_platform = sys.platform if platform is None else platform
     resolved_home = Path.home() if home is None else home
-
-    if resolved_platform == "darwin":
-        return resolved_home / "Library" / "Application Support" / "lsg" / "settings.json"
-
-    if resolved_platform.startswith("win"):
-        local_app_data = resolved_env.get("LOCALAPPDATA")
-        base = Path(local_app_data) if local_app_data else resolved_home / "AppData" / "Local"
-        return base / "lsg" / "settings.json"
-
-    xdg_config_home = resolved_env.get("XDG_CONFIG_HOME")
-    base = Path(xdg_config_home) if xdg_config_home else resolved_home / ".config"
-    return base / "lsg" / "settings.json"
+    return resolved_home / ".lsg" / "settings.json"
 
 
 def initialize_settings_file(

@@ -38,26 +38,10 @@ def test_resolve_config_path_uses_environment_override(tmp_path: Path) -> None:
     assert resolved == env_path
 
 
-def test_resolve_config_path_uses_platform_defaults(tmp_path: Path) -> None:
-    linux = resolve_config_path(env={}, platform="linux", home=tmp_path)
-    macos = resolve_config_path(env={}, platform="darwin", home=tmp_path)
-    windows = resolve_config_path(env={}, platform="win32", home=tmp_path)
+def test_resolve_config_path_uses_dotfile_default(tmp_path: Path) -> None:
+    resolved = resolve_config_path(env={}, home=tmp_path)
 
-    assert linux == tmp_path / ".config" / "lsg" / "settings.json"
-    assert macos == tmp_path / "Library" / "Application Support" / "lsg" / "settings.json"
-    assert windows == tmp_path / "AppData" / "Local" / "lsg" / "settings.json"
-
-
-def test_resolve_config_path_uses_windows_local_app_data(tmp_path: Path) -> None:
-    local_app_data = tmp_path / "LocalAppData"
-
-    resolved = resolve_config_path(
-        env={"LOCALAPPDATA": str(local_app_data)},
-        platform="win32",
-        home=tmp_path,
-    )
-
-    assert resolved == local_app_data / "lsg" / "settings.json"
+    assert resolved == tmp_path / ".lsg" / "settings.json"
 
 
 def test_initialize_settings_file_creates_default_json(tmp_path: Path) -> None:

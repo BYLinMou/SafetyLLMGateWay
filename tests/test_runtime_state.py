@@ -47,36 +47,10 @@ def test_resolve_runtime_state_path_uses_environment_override(tmp_path: Path) ->
     assert resolved == env_path
 
 
-def test_resolve_runtime_state_path_uses_platform_defaults(tmp_path: Path) -> None:
-    linux_runtime = resolve_runtime_state_path(
-        env={"XDG_RUNTIME_DIR": str(tmp_path / "runtime")},
-        platform="linux",
-        home=tmp_path,
-    )
-    linux_cache = resolve_runtime_state_path(
-        env={"XDG_CACHE_HOME": str(tmp_path / "cache")},
-        platform="linux",
-        home=tmp_path,
-    )
-    macos = resolve_runtime_state_path(env={}, platform="darwin", home=tmp_path)
-    windows = resolve_runtime_state_path(env={}, platform="win32", home=tmp_path)
+def test_resolve_runtime_state_path_uses_dotfile_default(tmp_path: Path) -> None:
+    resolved = resolve_runtime_state_path(env={}, home=tmp_path)
 
-    assert linux_runtime == tmp_path / "runtime" / "lsg" / "state.json"
-    assert linux_cache == tmp_path / "cache" / "lsg" / "state.json"
-    assert macos == tmp_path / "Library" / "Caches" / "lsg" / "state.json"
-    assert windows == tmp_path / "AppData" / "Local" / "lsg" / "runtime" / "state.json"
-
-
-def test_resolve_runtime_state_path_uses_windows_local_app_data(tmp_path: Path) -> None:
-    local_app_data = tmp_path / "LocalAppData"
-
-    resolved = resolve_runtime_state_path(
-        env={"LOCALAPPDATA": str(local_app_data)},
-        platform="win32",
-        home=tmp_path,
-    )
-
-    assert resolved == local_app_data / "lsg" / "runtime" / "state.json"
+    assert resolved == tmp_path / ".lsg" / "state.json"
 
 
 def test_runtime_state_round_trips_without_raw_secrets(tmp_path: Path) -> None:

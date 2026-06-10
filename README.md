@@ -15,13 +15,7 @@ python -m pip install -e .
 
 The gateway uses a JSON settings file. It does not automatically read `.env` files.
 
-Default settings paths:
-
-| Platform | Path |
-| --- | --- |
-| Linux | `${XDG_CONFIG_HOME:-~/.config}/lsg/settings.json` |
-| macOS | `~/Library/Application Support/lsg/settings.json` |
-| Windows | `%LOCALAPPDATA%\lsg\settings.json` |
+Default settings path: `~/.lsg/settings.json`
 
 For development, point the gateway at a repo-local ignored file:
 
@@ -54,21 +48,15 @@ Then edit `.dev/settings.json` and fill in the upstream values:
 }
 ```
 
-`LSG_CONFIG_PATH` overrides the platform default path. The process loads and validates settings once when `lsg start` runs; it does not reread the settings file for every proxied request.
+`LSG_CONFIG_PATH` overrides the default path. The process loads and validates settings once when `lsg start` runs; it does not reread the settings file for every proxied request.
 
 ## Runtime state
 
 `lsg start` writes runtime state for the currently managed gateway process. Runtime state is separate from `settings.json` and does not store API keys.
 
-Default runtime state paths:
+Default runtime state path: `~/.lsg/state.json`
 
-| Platform | Path |
-| --- | --- |
-| Linux | `${XDG_RUNTIME_DIR}/lsg/state.json` or `${XDG_CACHE_HOME:-~/.cache}/lsg/state.json` |
-| macOS | `~/Library/Caches/lsg/state.json` |
-| Windows | `%LOCALAPPDATA%\lsg\runtime\state.json` |
-
-`LSG_RUNTIME_STATE_PATH` overrides the platform default runtime state path.
+`LSG_RUNTIME_STATE_PATH` overrides the default runtime state path.
 
 ## Run
 
