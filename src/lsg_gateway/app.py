@@ -58,7 +58,6 @@ def create_app(
     async def health() -> dict[str, str]:
         return {
             "status": "ok",
-            "defaultUpstream": config.default_upstream,
         }
 
     @app.api_route("/", methods=PROXY_METHODS)

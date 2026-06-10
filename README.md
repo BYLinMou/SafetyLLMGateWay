@@ -76,7 +76,13 @@ Default runtime state paths:
 lsg start
 ```
 
-The gateway exposes `GET /health` locally. All other paths are forwarded to the configured default upstream with the original method, path, query string, and body. The gateway replaces incoming `Authorization` credentials with the configured upstream API key before forwarding.
+The gateway exposes public `GET /health` locally. It returns only minimal liveness JSON:
+
+```json
+{"status":"ok"}
+```
+
+The public health response does not require downstream authentication or a local management token, is not proxied to an upstream, and does not include config paths, upstream aliases, API keys, or other privileged operational details. All other paths are forwarded to the configured default upstream with the original method, path, query string, and body. The gateway replaces incoming `Authorization` credentials with the configured upstream API key before forwarding.
 
 Check a running local gateway:
 

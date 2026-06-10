@@ -14,17 +14,37 @@ def make_config():
     settings = json.loads(json.dumps(DEFAULT_SETTINGS))
     settings["upstreams"]["default"]["baseUrl"] = "https://api.example.test"
     settings["upstreams"]["default"]["apiKey"] = "secret-upstream-key"
+    settings["auth"]["enabled"] = True
+    settings["auth"]["downstreamApiKeys"] = ["secret-downstream-key"]
     return parse_settings(settings, source_path=Path("settings.json"))
 
 
-def test_health_endpoint_returns_gateway_metadata() -> None:
-    app = create_app(make_config(), upstream_transport=httpx.MockTransport(lambda request: None))
+def test_public_health_endpoint_returns_minimal_liveness_without_auth() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        raise AssertionError("/health must not be proxied to an upstream")
+
+    app = create_app(make_config(), upstream_transport=httpx.MockTransport(handler))
 
     with TestClient(app) as client:
         response = client.get("/health")
 
     assert response.status_code == 200
-    assert response.json() == {"status": "ok", "defaultUpstream": "default"}
+    assert response.headers["content-type"].startswith("application/json")
+    assert response.json() == {"status": "ok"}
+    raw_response = response.text
+    privileged_values = [
+        "configLoaded",
+        "127.0.0.1",
+        "8178",
+        "defaultUpstream",
+        "upstreamAliases",
+        "default",
+        "secret-upstream-key",
+        "secret-downstream-key",
+        "settings.json",
+    ]
+    for value in privileged_values:
+        assert value not in raw_response
 
 
 def test_proxy_forwards_method_path_query_body_and_upstream_authorization() -> None:
