@@ -140,6 +140,7 @@ def test_health_command_clears_stale_runtime_state_and_fails(
 def test_start_command_writes_runtime_state_and_cleans_it_after_exit(
     tmp_path: Path,
     monkeypatch,
+    capsys,
 ) -> None:
     settings_path = tmp_path / "settings.json"
     state_path = tmp_path / "state.json"
@@ -173,6 +174,7 @@ def test_start_command_writes_runtime_state_and_cleans_it_after_exit(
 
     assert exit_code == 0
     assert not state_path.exists()
+    assert f"Configuration path: {settings_path.resolve()}" in capsys.readouterr().out
 
 
 def test_start_command_refuses_existing_active_runtime_state(

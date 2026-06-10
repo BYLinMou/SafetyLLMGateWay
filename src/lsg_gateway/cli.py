@@ -121,6 +121,7 @@ def _start(args: argparse.Namespace) -> int:
         return 1
 
     print(f"Gateway running at {url}")
+    print(f"Configuration path: {config.source_path.resolve()}")
     print(f"Runtime state: {state_path}")
 
     server = uvicorn.Server(uvicorn.Config(create_app(config), host=host, port=port))
