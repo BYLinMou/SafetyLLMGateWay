@@ -64,7 +64,52 @@ def test_load_settings_reads_valid_config(tmp_path: Path) -> None:
     assert config.server.port == 8178
     assert config.default_upstream_config.base_url == "https://api.example.test"
     assert config.default_upstream_config.api_key == "secret-upstream-key"
+    assert config.proxy.connect_timeout_ms == 10000
+    assert config.proxy.read_timeout_ms == 120000
+    assert config.proxy.request_timeout_ms == 300000
     assert len(config.fingerprint) == 64
+
+
+def test_load_settings_preserves_custom_proxy_timeouts(tmp_path: Path) -> None:
+    path = tmp_path / "settings.json"
+    settings = valid_settings()
+    settings["proxy"] = {
+        "connectTimeoutMs": 1500,
+        "readTimeoutMs": 45000,
+        "requestTimeoutMs": 90000,
+    }
+    path.write_text(json.dumps(settings), encoding="utf-8")
+
+    config = load_settings(path)
+
+    assert config.proxy.connect_timeout_ms == 1500
+    assert config.proxy.read_timeout_ms == 45000
+    assert config.proxy.request_timeout_ms == 90000
+
+
+def test_load_settings_keeps_legacy_config_without_proxy_block(tmp_path: Path) -> None:
+    path = tmp_path / "settings.json"
+    settings = valid_settings()
+    del settings["proxy"]
+    path.write_text(json.dumps(settings), encoding="utf-8")
+
+    config = load_settings(path)
+
+    assert config.proxy.connect_timeout_ms == 10000
+    assert config.proxy.read_timeout_ms == 120000
+    assert config.proxy.request_timeout_ms == 300000
+
+
+def test_load_settings_rejects_invalid_proxy_timeout(tmp_path: Path) -> None:
+    path = tmp_path / "settings.json"
+    settings = valid_settings()
+    settings["proxy"]["readTimeoutMs"] = 0
+    path.write_text(json.dumps(settings), encoding="utf-8")
+
+    with pytest.raises(ConfigError) as exc_info:
+        load_settings(path)
+
+    assert "proxy.timeout.invalid" in {d.code for d in exc_info.value.diagnostics}
 
 
 def test_load_settings_preserves_custom_server_port(tmp_path: Path) -> None:

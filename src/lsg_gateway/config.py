@@ -14,6 +14,9 @@ CONFIG_ENV_VAR = "LSG_CONFIG_PATH"
 DEFAULT_CONFIG_VERSION = 1
 DEFAULT_SERVER_HOST = "127.0.0.1"
 DEFAULT_SERVER_PORT = 8178
+DEFAULT_PROXY_CONNECT_TIMEOUT_MS = 10000
+DEFAULT_PROXY_READ_TIMEOUT_MS = 120000
+DEFAULT_PROXY_REQUEST_TIMEOUT_MS = 300000
 ALIAS_PATTERN = re.compile(r"^[A-Za-z0-9_-]+$")
 
 
@@ -27,6 +30,11 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "auth": {
         "enabled": False,
         "downstreamApiKeys": [],
+    },
+    "proxy": {
+        "connectTimeoutMs": DEFAULT_PROXY_CONNECT_TIMEOUT_MS,
+        "readTimeoutMs": DEFAULT_PROXY_READ_TIMEOUT_MS,
+        "requestTimeoutMs": DEFAULT_PROXY_REQUEST_TIMEOUT_MS,
     },
     "upstreams": {
         "default": {
@@ -58,6 +66,13 @@ class AuthConfig:
 
 
 @dataclass(frozen=True)
+class ProxyConfig:
+    connect_timeout_ms: int
+    read_timeout_ms: int
+    request_timeout_ms: int
+
+
+@dataclass(frozen=True)
 class UpstreamConfig:
     alias: str
     base_url: str
@@ -70,6 +85,7 @@ class GatewayConfig:
     version: int
     server: ServerConfig
     auth: AuthConfig
+    proxy: ProxyConfig
     default_upstream: str
     upstreams: dict[str, UpstreamConfig]
     source_path: Path
@@ -164,6 +180,7 @@ def parse_settings(
     source_path: Path,
     require_usable_upstream: bool = True,
 ) -> GatewayConfig:
+    raw = _apply_default_settings(raw)
     diagnostics = _validate_settings(raw, require_usable_upstream=require_usable_upstream)
     if diagnostics:
         raise ConfigError(diagnostics)
@@ -189,11 +206,32 @@ def parse_settings(
             enabled=raw["auth"]["enabled"],
             downstream_api_keys=tuple(raw["auth"]["downstreamApiKeys"]),
         ),
+        proxy=ProxyConfig(
+            connect_timeout_ms=raw["proxy"]["connectTimeoutMs"],
+            read_timeout_ms=raw["proxy"]["readTimeoutMs"],
+            request_timeout_ms=raw["proxy"]["requestTimeoutMs"],
+        ),
         default_upstream=raw["defaultUpstream"],
         upstreams=upstreams,
         source_path=source_path,
         fingerprint=fingerprint,
     )
+
+
+def _apply_default_settings(raw: Any) -> Any:
+    if not isinstance(raw, dict):
+        return raw
+
+    normalized = dict(raw)
+    proxy = normalized.get("proxy")
+    if proxy is None:
+        normalized["proxy"] = dict(DEFAULT_SETTINGS["proxy"])
+    elif isinstance(proxy, dict):
+        normalized["proxy"] = {
+            **DEFAULT_SETTINGS["proxy"],
+            **proxy,
+        }
+    return normalized
 
 
 def _validate_settings(raw: Any, *, require_usable_upstream: bool) -> list[ConfigDiagnostic]:
@@ -279,6 +317,27 @@ def _validate_settings(raw: Any, *, require_usable_upstream: bool) -> list[Confi
                     message="auth.downstreamApiKeys must be an array of strings.",
                 )
             )
+
+    proxy = raw.get("proxy")
+    if not isinstance(proxy, dict):
+        diagnostics.append(
+            ConfigDiagnostic(
+                path="proxy",
+                code="proxy.type",
+                message="proxy must be an object with timeout settings.",
+            )
+        )
+    else:
+        for field_name in ("connectTimeoutMs", "readTimeoutMs", "requestTimeoutMs"):
+            value = proxy.get(field_name)
+            if not isinstance(value, int) or isinstance(value, bool) or value < 1:
+                diagnostics.append(
+                    ConfigDiagnostic(
+                        path=f"proxy.{field_name}",
+                        code="proxy.timeout.invalid",
+                        message=f"proxy.{field_name} must be a positive integer in milliseconds.",
+                    )
+                )
 
     default_upstream = raw.get("defaultUpstream")
     if not isinstance(default_upstream, str) or not default_upstream:
