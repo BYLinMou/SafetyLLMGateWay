@@ -38,6 +38,11 @@ Then edit `.dev/settings.json` and fill in the upstream values:
     "enabled": false,
     "downstreamApiKeys": []
   },
+  "proxy": {
+    "connectTimeoutMs": 10000,
+    "readTimeoutMs": 120000,
+    "requestTimeoutMs": 300000
+  },
   "upstreams": {
     "default": {
       "baseUrl": "https://api.openai.com",
